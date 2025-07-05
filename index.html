@@ -1,567 +1,397 @@
-diff --git a//dev/null b/cabletv-complaint-system.html
-index 0000000000000000000000000000000000000000..88444e6d811897a591a910e339c21b99a8032c07 100644
---- a//dev/null
-+++ b/cabletv-complaint-system.html
-@@ -0,0 +1,562 @@
-+<!DOCTYPE html>
-+<html lang="en">
-+<head>
-+  <meta charset="UTF-8">
-+  <title>CableTV Complaint System</title>
-+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-+  <script src="https://cdn.tailwindcss.com"></script>
-+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-+  <style>
-+    .btn-animate {transition: all 0.2s;}
-+    .btn-animate:hover {transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.1);}
-+    .autocomplete-items {position: absolute; z-index: 1000; background: white; border: 1px solid #ccc; width: 100%; max-height: 180px; overflow-y: auto;}
-+    .autocomplete-item {padding: 8px 12px; cursor: pointer;}
-+    .autocomplete-item:hover, .autocomplete-active {background: #e2e8f0;}
-+    @media (max-width: 700px) {
-+      #pendingComplaintsTable th, #pendingComplaintsTable td { font-size: 13px; padding: 6px; }
-+      #pendingComplaintsTable td.comments-cell { max-width: 90px; word-break: break-word; }
-+    }
-+    #pendingComplaintsTable td.comments-cell { max-width: 200px; word-break: break-word; }
-+    #pendingComplaintsTable td, #pendingComplaintsTable th { white-space: normal; }
-+    #pendingComplaintsTable .resolve-cell { width: 1%; }
-+    #pendingComplaintsTable .action-buttons { display: flex; flex-wrap: nowrap; gap: 0.25rem; }
-+    .form-label {font-size:0.98rem;}
-+  </style>
-+</head>
-+<body class="bg-gray-50 font-sans">
-+
-+  <header class="bg-blue-600 text-white shadow-md">
-+    <div class="container mx-auto px-4 py-3 flex items-center">
-+      <i class="material-icons text-2xl">tv</i>
-+      <h1 class="text-xl font-bold ml-2">CableTV Complaint System</h1>
-+    </div>
-+  </header>
-+
-+  <main class="container mx-auto px-2 py-8">
-+    <!-- Home Section -->
-+    <section id="homeSection">
-+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-+        <div id="pendingComplaintsCard" class="rounded-xl bg-gradient-to-br from-green-400 via-green-200 to-green-50 shadow-lg flex flex-col items-center justify-center p-8 btn-animate cursor-pointer">
-+          <i class="material-icons text-white text-5xl mb-2 drop-shadow bg-green-600 rounded-full p-2">pending_actions</i>
-+          <div class="flex flex-col items-center">
-+            <span id="pendingComplaintsCount" class="text-green-800 font-black text-6xl md:text-7xl leading-none drop-shadow mb-1">0</span>
-+            <span class="text-green-900 text-2xl font-bold drop-shadow">Pending Complaints</span>
-+          </div>
-+        </div>
-+        <div id="pendingComplaints2hCard" class="rounded-xl bg-gradient-to-br from-yellow-300 via-yellow-100 to-orange-100 shadow-lg flex flex-col items-center justify-center p-8 btn-animate cursor-pointer">
-+          <i class="material-icons text-yellow-700 text-5xl mb-2 drop-shadow bg-yellow-200 rounded-full p-2">schedule</i>
-+          <div class="flex flex-col items-center">
-+            <span id="pendingComplaints2hCount" class="text-yellow-900 font-black text-6xl md:text-7xl leading-none drop-shadow mb-1">0</span>
-+            <span class="text-yellow-900 text-2xl font-bold drop-shadow">Pending for 2+ hrs</span>
-+          </div>
-+        </div>
-+        <div id="pendingComplaints24hCard" class="rounded-xl bg-gradient-to-br from-red-400 via-red-200 to-orange-100 shadow-lg flex flex-col items-center justify-center p-8 btn-animate cursor-pointer">
-+          <i class="material-icons text-red-700 text-5xl mb-2 drop-shadow bg-red-200 rounded-full p-2">schedule</i>
-+          <div class="flex flex-col items-center">
-+            <span id="pendingComplaints24hCount" class="text-red-900 font-black text-6xl md:text-7xl leading-none drop-shadow mb-1">0</span>
-+            <span class="text-red-900 text-2xl font-bold drop-shadow">Pending for 24+ hrs</span>
-+          </div>
-+        </div>
-+      </div>
-+
-+      <div id="registerComplaintDiv" class="flex justify-center mb-8">
-+        <button id="registerComplaintBtn"
-+          class="rounded-2xl bg-gradient-to-br from-blue-500 via-blue-300 to-sky-300 shadow-xl hover:scale-105 transform transition-all duration-200 flex items-center space-x-4 px-10 py-6 btn-animate text-2xl">
-+          <i class="material-icons text-white text-4xl md:text-5xl">add_circle_outline</i>
-+          <span class="text-white font-extrabold drop-shadow">Register Complaint</span>
-+        </button>
-+      </div>
-+    </section>
-+
-+    <!-- Pending Complaints List Section (Hidden by default) -->
-+    <section id="pendingComplaintsListSection" class="hidden max-w-2xl mx-auto mb-8">
-+      <div class="flex items-center mb-5">
-+        <button id="backToHomeBtn" class="mr-4 text-gray-600 hover:text-blue-700">
-+          <i class="material-icons text-3xl">arrow_back</i>
-+        </button>
-+        <h2 class="text-2xl font-bold flex items-center text-green-700" id="pendingSectionHeader">
-+          <i class="material-icons mr-2">pending_actions</i> Pending Complaints
-+        </h2>
-+      </div>
-+      <div id="pendingComplaintsTableContainer">
-+        <div class="w-full rounded-xl shadow-lg bg-white p-2 overflow-x-auto">
-+          <table class="min-w-full text-gray-700 text-sm" id="pendingComplaintsTable" style="table-layout: fixed;">
-+            <colgroup>
-+              <col style="width: 28%">
-+              <col style="width: 28%">
-+              <col style="width: 32%">
-+              <col style="width: 12%">
-+            </colgroup>
-+            <thead>
-+              <tr class="bg-green-100">
-+                <th class="px-2 py-2 text-left">Name</th>
-+                <th class="px-2 py-2 text-left">Complaint Type</th>
-+                <th class="px-2 py-2 text-left">Comments</th>
-+                <th class="px-2 py-2 text-left"></th>
-+              </tr>
-+            </thead>
-+            <tbody id="pendingComplaintsTableBody">
-+              <tr><td colspan="4" class="text-center py-6 text-gray-400">Loading...</td></tr>
-+            </tbody>
-+          </table>
-+        </div>
-+      </div>
-+    </section>
-+
-+    <!-- Complaint Form Section (Hidden by default) -->
-+    <section id="complaintForm" class="hidden bg-white rounded-lg shadow-lg p-6 max-w-2xl mx-auto">
-+      <div class="flex justify-between items-center mb-6">
-+        <h2 class="text-xl font-bold text-gray-800 flex items-center">
-+          <i class="material-icons text-blue-500 mr-2">assignment</i>
-+          Register New Complaint
-+        </h2>
-+        <button id="closeFormBtn" class="text-gray-500 hover:text-gray-700">
-+          <i class="material-icons">close</i>
-+        </button>
-+      </div>
-+      <form id="complaintFormElement" class="space-y-4" autocomplete="off">
-+        <div class="relative">
-+          <label class="block text-sm font-medium text-gray-700 mb-1">Customer Name</label>
-+          <input id="customerSearchInput" type="text" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm" placeholder="Type to search customer name..." autocomplete="off" required>
-+          <div id="customerAutocompleteList" class="autocomplete-items" style="display:none;"></div>
-+        </div>
-+        <div>
-+          <label class="block text-sm font-medium text-gray-700 mb-1">Complaint Type</label>
-+          <select id="complaintType" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm" required>
-+            <option value="">Select complaint type</option>
-+            <option>Channel Freezing</option>
-+            <option>No Sound</option>
-+            <option>No video</option>
-+            <option>Loose Connection</option>
-+            <option>Complete Dead</option>
-+            <option>No Signal</option>
-+            <option>New Connection Request</option>
-+            <option>Payment Collection Request</option>
-+            <option>Connection Shifting Request</option>
-+            <option>Main Line Breakdown Road</option>
-+            <option>Wire Shifting</option>
-+            <option>New Remote</option>
-+            <option>New Adapter</option>
-+            <option>Other</option>
-+          </select>
-+        </div>
-+        <div>
-+          <label class="block text-sm font-medium text-gray-700 mb-1">Comments (Optional)</label>
-+          <textarea id="comments" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm" placeholder="Add any additional details..."></textarea>
-+        </div>
-+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-+          <div>
-+            <label class="block text-sm font-medium text-gray-700 mb-1">STB Number</label>
-+            <input id="stbNumber" type="text" readonly class="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-md">
-+          </div>
-+          <div>
-+            <label class="block text-sm font-medium text-gray-700 mb-1">Customer Location (GPS)</label>
-+            <input id="customerLocation" type="text" readonly class="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-md">
-+          </div>
-+        </div>
-+        <div>
-+          <label class="block text-sm font-medium text-gray-700 mb-1">Customer Address</label>
-+          <textarea id="customerAddress" rows="2" readonly class="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-md"></textarea>
-+        </div>
-+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-+          <div>
-+            <label class="block text-sm font-medium text-gray-700 mb-1">Phone 1</label>
-+            <input id="phone1" type="text" readonly class="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-md">
-+          </div>
-+          <div>
-+            <label class="block text-sm font-medium text-gray-700 mb-1">Phone 2</label>
-+            <input id="phone2" type="text" readonly class="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-md">
-+          </div>
-+          <div>
-+            <label class="block text-sm font-medium text-gray-700 mb-1">Phone 3</label>
-+            <input id="phone3" type="text" readonly class="w-full px-3 py-2 bg-gray-100 border border-gray-300 rounded-md">
-+          </div>
-+        </div>
-+        <div class="flex justify-end space-x-3 pt-4">
-+          <button type="button" id="cancelComplaintBtn" class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50">
-+            Cancel
-+          </button>
-+          <button type="submit" class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 btn-animate">
-+            Submit Complaint
-+          </button>
-+        </div>
-+      </form>
-+    </section>
-+  </main>
-+  <script>
-+    // SheetDB endpoints
-+    const SHEETDB_CUSTOMERS_API = "https://sheetdb.io/api/v1/f5vg3sptzr3d4";
-+    const SHEETDB_COMPLAINTS_API = "https://sheetdb.io/api/v1/ner9gfv7uhpnb";
-+
-+    // Field keys
-+    const CUSTOMER_FIELDS = {
-+      name: "NAME",
-+      stb: "STB Number",
-+      address: "ADD",
-+      gps: "GPS",
-+      phone1: "PHONE 1",
-+      phone2: "PHONE 2",
-+      phone3: "PHONE 3"
-+    };
-+    const COMPLAINT_FIELDS = {
-+      timestamp: "Timestamp",
-+      name: "Name",
-+      complaintType: "Complaint Type",
-+      comments: "Comments",
-+      stb: "STB Number",
-+      address: "Address",
-+      gps: "GPS",
-+      phone1: "Phone 1",
-+      phone2: "Phone 2",
-+      phone3: "Phone 3",
-+      status: "Status"
-+    };
-+
-+    // UI Show/Hide helpers
-+    function showHome() {
-+      document.getElementById('homeSection').classList.remove('hidden');
-+      document.getElementById('registerComplaintDiv').classList.remove('hidden');
-+      document.getElementById('complaintForm').classList.add('hidden');
-+      document.getElementById('pendingComplaintsListSection').classList.add('hidden');
-+    }
-+    document.getElementById('registerComplaintBtn').onclick = function() {
-+      document.getElementById('homeSection').classList.add('hidden');
-+      document.getElementById('registerComplaintDiv').classList.add('hidden');
-+      document.getElementById('complaintForm').classList.remove('hidden');
-+      document.getElementById('pendingComplaintsListSection').classList.add('hidden');
-+    };
-+    document.getElementById('closeFormBtn').onclick =
-+    document.getElementById('cancelComplaintBtn').onclick = function() {
-+      showHome();
-+    };
-+
-+    document.getElementById('pendingComplaintsCard').onclick = function() {
-+      showPendingSection('all');
-+    };
-+    document.getElementById('pendingComplaints2hCard').onclick = function() {
-+      showPendingSection('2h');
-+    };
-+    document.getElementById('pendingComplaints24hCard').onclick = function() {
-+      showPendingSection('24h');
-+    };
-+    document.getElementById('backToHomeBtn').onclick = function() {
-+      showHome();
-+    };
-+
-+    function showPendingSection(type) {
-+      document.getElementById('homeSection').classList.add('hidden');
-+      document.getElementById('registerComplaintDiv').classList.add('hidden');
-+      document.getElementById('complaintForm').classList.add('hidden');
-+      document.getElementById('pendingComplaintsListSection').classList.remove('hidden');
-+      let head = document.getElementById('pendingSectionHeader');
-+      if(type === '2h') {
-+        head.innerHTML = `<i class="material-icons mr-2">schedule</i> Pending for 2+ Hours`;
-+      } else if(type === '24h') {
-+        head.innerHTML = `<i class="material-icons mr-2">schedule</i> Pending for 24+ Hours`;
-+      } else {
-+        head.innerHTML = `<i class="material-icons mr-2">pending_actions</i> Pending Complaints`;
-+      }
-+      loadPendingComplaintsTable(type);
-+    }
-+
-+    // Customer autofill and autocomplete
-+    let customerList = [];
-+    async function fetchCustomers() {
-+      try {
-+        const res = await fetch(SHEETDB_CUSTOMERS_API);
-+        customerList = await res.json();
-+        setupCustomerAutocomplete();
-+      } catch { customerList = []; }
-+    }
-+    fetchCustomers();
-+
-+    function fillCustomerDetails(customer) {
-+      document.getElementById('customerSearchInput').value = customer[CUSTOMER_FIELDS.name] || "";
-+      document.getElementById('stbNumber').value = customer[CUSTOMER_FIELDS.stb] || "";
-+      document.getElementById('customerAddress').value = customer[CUSTOMER_FIELDS.address] || "";
-+      document.getElementById('customerLocation').value = customer[CUSTOMER_FIELDS.gps] || "";
-+      document.getElementById('phone1').value = customer[CUSTOMER_FIELDS.phone1] || "";
-+      document.getElementById('phone2').value = customer[CUSTOMER_FIELDS.phone2] || "";
-+      document.getElementById('phone3').value = customer[CUSTOMER_FIELDS.phone3] || "";
-+    }
-+
-+    function setupCustomerAutocomplete() {
-+      const input = document.getElementById('customerSearchInput');
-+      const list = document.getElementById('customerAutocompleteList');
-+      let activeIndex = -1;
-+      input.oninput = function() {
-+        const val = this.value.trim().toLowerCase();
-+        list.innerHTML = '';
-+        activeIndex = -1;
-+        if (!val || customerList.length === 0) {
-+          list.style.display = 'none';
-+          return;
-+        }
-+        const matches = customerList.filter(c =>
-+          (c[CUSTOMER_FIELDS.name] || "").toLowerCase().includes(val)
-+        );
-+        if (matches.length === 0) {
-+          list.style.display = 'none';
-+          return;
-+        }
-+        matches.slice(0, 20).forEach((c, idx) => {
-+          const item = document.createElement('div');
-+          item.className = 'autocomplete-item';
-+          item.textContent = c[CUSTOMER_FIELDS.name];
-+          item.tabIndex = -1;
-+          item.onmousedown = function(e) {
-+            e.preventDefault();
-+            input.value = c[CUSTOMER_FIELDS.name];
-+            fillCustomerDetails(c);
-+            list.innerHTML = '';
-+            list.style.display = 'none';
-+          };
-+          list.appendChild(item);
-+        });
-+        list.style.display = '';
-+      };
-+      input.onkeydown = function(e) {
-+        let items = list.querySelectorAll('.autocomplete-item');
-+        if (!items.length) return;
-+        if (e.key === "ArrowDown") {
-+          e.preventDefault();
-+          activeIndex = (activeIndex + 1) % items.length;
-+          updateActive(items, activeIndex);
-+        } else if (e.key === "ArrowUp") {
-+          e.preventDefault();
-+          activeIndex = (activeIndex - 1 + items.length) % items.length;
-+          updateActive(items, activeIndex);
-+        } else if (e.key === "Enter") {
-+          if (activeIndex > -1) {
-+            e.preventDefault();
-+            items[activeIndex].dispatchEvent(new Event('mousedown'));
-+          }
-+        }
-+      };
-+      function updateActive(items, idx) {
-+        items.forEach((item, i) => {
-+          if (i === idx) item.classList.add('autocomplete-active');
-+          else item.classList.remove('autocomplete-active');
-+        });
-+      }
-+      input.onblur = function() {
-+        setTimeout(() => { list.style.display = 'none'; }, 200);
-+      };
-+      input.onchange = function() {
-+        const val = this.value.trim().toLowerCase();
-+        const customer = customerList.find(c => (c[CUSTOMER_FIELDS.name] || "").toLowerCase() === val);
-+        if (customer) fillCustomerDetails(customer);
-+      };
-+    }
-+
-+    function getLocalTimestamp() {
-+      const now = new Date();
-+      const pad = n => n.toString().padStart(2, '0');
-+      return [
-+        now.getFullYear(),
-+        pad(now.getMonth() + 1),
-+        pad(now.getDate())
-+      ].join('-') + ' ' +
-+      [
-+        pad(now.getHours()),
-+        pad(now.getMinutes()),
-+        pad(now.getSeconds())
-+      ].join(':');
-+    }
-+
-+    document.getElementById('complaintFormElement').addEventListener('submit', async function(e) {
-+      e.preventDefault();
-+      const form = e.target;
-+      const data = {
-+        [COMPLAINT_FIELDS.timestamp]: getLocalTimestamp(),
-+        [COMPLAINT_FIELDS.name]: form.customerSearchInput.value.trim(),
-+        [COMPLAINT_FIELDS.complaintType]: form.complaintType.value.trim(),
-+        [COMPLAINT_FIELDS.comments]: form.comments.value.trim(),
-+        [COMPLAINT_FIELDS.stb]: form.stbNumber.value.trim(),
-+        [COMPLAINT_FIELDS.address]: form.customerAddress.value.trim(),
-+        [COMPLAINT_FIELDS.gps]: form.customerLocation.value.trim(),
-+        [COMPLAINT_FIELDS.phone1]: form.phone1.value.trim(),
-+        [COMPLAINT_FIELDS.phone2]: form.phone2.value.trim(),
-+        [COMPLAINT_FIELDS.phone3]: form.phone3.value.trim(),
-+        [COMPLAINT_FIELDS.status]: "Pending"
-+      };
-+      try {
-+        await fetch(SHEETDB_COMPLAINTS_API, {
-+          method: 'POST',
-+          headers: { 'Content-Type': 'application/json' },
-+          body: JSON.stringify({ data })
-+        });
-+        alert("Complaint registered successfully!");
-+        form.reset();
-+        showHome();
-+        fetchAndDisplayPendingCounts();
-+      } catch (err) {
-+        alert("Failed to register complaint. Please try again!");
-+      }
-+    });
-+
-+    // Now, this function will attempt to update the existing row.
-+    async function resolveComplaintRow(timestamp, name, complaintData) {
-+      if (!timestamp || !name) {
-+        alert("Missing complaint data to identify the row for update.");
-+        return;
-+      }
-+
-+      // Data to be updated
-+      const updateData = {
-+        [COMPLAINT_FIELDS.status]: "Resolved"
-+      };
-+
-+      // Construct the URL for updating using search_or_update.
-+      const apiUrl = `${SHEETDB_COMPLAINTS_API}/search_or_update?${COMPLAINT_FIELDS.name}=${encodeURIComponent(name)}&${COMPLAINT_FIELDS.timestamp}=${encodeURIComponent(timestamp)}`;
-+
-+      try {
-+        const response = await fetch(apiUrl, {
-+          method: "PATCH",
-+          headers: { "Content-Type": "application/json" },
-+          body: JSON.stringify({ data: updateData })
-+        });
-+
-+        if (!response.ok) {
-+          const errorResult = await response.json().catch(() => ({ error: "Could not parse error response from SheetDB." }));
-+          throw new Error(`SheetDB API Error: ${response.status} ${response.statusText}. ${errorResult.error || JSON.stringify(errorResult)}`);
-+        }
-+
-+        const result = await response.json();
-+        if (result.updated > 0 || parseInt(result.updated) > 0) {
-+          alert("Complaint status updated to Resolved!");
-+        } else if (result.updated === 0 || result.updated === "0") {
-+          alert("Complaint found, but status was not changed (it might have been already Resolved or data matched existing). Please verify.");
-+        }
-+        else {
-+          alert("Complaint not found or no rows updated. Please check the details and try again.");
-+        }
-+
-+        let headElement = document.getElementById('pendingSectionHeader');
-+        let head = headElement ? headElement.textContent || '' : '';
-+
-+        if (head.includes('2+')) {
-+            loadPendingComplaintsTable('2h');
-+        } else if (head.includes('24+')) {
-+            loadPendingComplaintsTable('24h');
-+        } else {
-+            loadPendingComplaintsTable('all');
-+        }
-+        fetchAndDisplayPendingCounts();
-+
-+      } catch (err) {
-+        console.error("Error resolving complaint:", err);
-+        alert(`Failed to update complaint status: ${err.message}`);
-+      }
-+    }
-+
-+    async function fetchAndDisplayPendingCounts() {
-+      try {
-+        const res = await fetch(SHEETDB_COMPLAINTS_API + "?sort_by=Timestamp&sort_order=desc");
-+        const complaints = await res.json();
-+        const now = new Date();
-+        let pending = 0, pending2h = 0, pending24h = 0;
-+        // Only count latest status for each Name+STB
-+        let latestMap = {};
-+        complaints.forEach(c => {
-+          let key = (c["Name"]||"") + "|" + (c["STB Number"]||"");
-+          if (!latestMap[key]) latestMap[key] = c;
-+        });
-+        Object.values(latestMap).forEach(c => {
-+          if ((c["Status"] || "").toLowerCase() === "pending") {
-+            const dt = Date.parse(c["Timestamp"]);
-+            if (!isNaN(dt)) {
-+              const diffHr = (now - dt) / (1000 * 60 * 60);
-+              if (diffHr >= 2 && diffHr < 24) pending2h++;
-+              if (diffHr >= 24) pending24h++;
-+            }
-+            pending++;
-+          }
-+        });
-+        document.getElementById('pendingComplaintsCount').textContent = pending;
-+        document.getElementById('pendingComplaints2hCount').textContent = pending2h;
-+        document.getElementById('pendingComplaints24hCount').textContent = pending24h;
-+      } catch {
-+        document.getElementById('pendingComplaintsCount').textContent = "0";
-+        document.getElementById('pendingComplaints2hCount').textContent = "0";
-+        document.getElementById('pendingComplaints24hCount').textContent = "0";
-+      }
-+    }
-+
-+    async function loadPendingComplaintsTable(type = 'all') {
-+      const tbody = document.getElementById('pendingComplaintsTableBody');
-+      tbody.innerHTML = '<tr><td colspan="4" class="text-center py-6 text-gray-400">Loading...</td></tr>';
-+      try {
-+        const res = await fetch(SHEETDB_COMPLAINTS_API + "?sort_by=Timestamp&sort_order=desc");
-+        const complaints = await res.json();
-+        const now = new Date();
-+        let latestMap = {};
-+        complaints.forEach(c => {
-+          let key = (c["Name"]||"") + "|" + (c["STB Number"]||"");
-+          if (!latestMap[key]) latestMap[key] = c;
-+        });
-+        let filtered = Object.values(latestMap).filter(c => (c["Status"] || "").toLowerCase() === "pending");
-+        if (type === '2h') {
-+          filtered = filtered.filter(c => {
-+            const dt = Date.parse(c["Timestamp"]);
-+            if (isNaN(dt)) return false;
-+            const diffHr = (now - dt) / (1000 * 60 * 60);
-+            return diffHr >= 2 && diffHr < 24;
-+          });
-+        } else if (type === '24h') {
-+          filtered = filtered.filter(c => {
-+            const dt = Date.parse(c["Timestamp"]);
-+            if (isNaN(dt)) return false;
-+            const diffHr = (now - dt) / (1000 * 60 * 60);
-+            return diffHr >= 24;
-+          });
-+        }
-+        if (!filtered.length) {
-+          tbody.innerHTML = '<tr><td colspan="4" class="text-center py-6 text-gray-400">No pending complaints.</td></tr>';
-+          return;
-+        }
-+        tbody.innerHTML = "";
-+        filtered.forEach((c, idx) => {
-+          const gpsValue = (c["GPS"] || "").trim();
-+          const gpsEscaped = gpsValue.replace(/'/g, "\\'");
-+          const cData = JSON.stringify(c).replace(/"/g, "&quot;");
-+          const tr = document.createElement("tr");
-+          tr.className = "hover:bg-green-50";
-+          tr.innerHTML = `
-+            <td class="px-2 py-2 truncate">${c["Name"] || ""}</td>
-+            <td class="px-2 py-2 truncate">${c["Complaint Type"] || ""}</td>
-+            <td class="px-2 py-2 comments-cell">${c["Comments"] || ""}</td>
-+            <td class="px-2 py-2 resolve-cell">
-+              <div class="action-buttons">
-+                <button class="bg-green-600 text-white px-2 py-1 rounded hover:bg-green-700 btn-animate" onclick='resolveComplaintRow("${c["Timestamp"]}","${c["Name"].replace(/'/g,"\\'")}",JSON.parse("${cData}"))'>Resolve</button>
-+                <button class="bg-blue-600 text-white px-2 py-1 rounded hover:bg-blue-700 btn-animate" onclick="goComplaintRow('${c["Timestamp"]}','${c["Name"].replace(/'/g,"\\'")}','${gpsEscaped}')">Go</button>
-+              </div>
-+            </td>
-+          `;
-+          tbody.appendChild(tr);
-+        });
-+      } catch {
-+        tbody.innerHTML = '<tr><td colspan="4" class="text-center py-6 text-gray-400">Failed to load.</td></tr>';
-+      }
-+    }
-+
-+    window.goComplaintRow = function(timestamp, name, gps) {
-+      if (!gps) {
-+        alert("No GPS coordinates for this customer.");
-+        return;
-+      }
-+      const gpsClean = gps.replace(/ /g,'').replace(/;/g,',');
-+      const gpsParts = gpsClean.split(',');
-+      if (gpsParts.length < 2 || isNaN(gpsParts[0]) || isNaN(gpsParts[1])) {
-+        alert("Invalid GPS coordinates: " + gps);
-+        return;
-+      }
-+      const url = `https://www.google.com/maps/dir/?api=1&destination=${gpsParts[0]},${gpsParts[1]}`;
-+      window.open(url, '_blank');
-+    };
-+
-+    // Initial load
-+    fetchAndDisplayPendingCounts();
-+  </script>
-+</body>
-+</html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>CableTV Complaint System</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <meta name="theme-color" content="#2563eb">
+  <style>
+    /* Your existing styles remain the same */
+    body {
+      max-width: 440px;
+      margin: 0 auto;
+      background: #f3f4f6;
+      font-family: 'Roboto', Arial, sans-serif;
+      color: #111;
+      font-size: 17px;
+      padding-bottom: 65px;
+    }
+    header {
+      background: #2563eb;
+      color: #fff;
+      padding: 15px 0 13px 0;
+      font-size: 20px;
+      font-weight: bold;
+      letter-spacing: .01em;
+      text-align: center;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      box-shadow: 0 2px 9px rgba(0,0,0,0.07);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    header .material-icons { font-size: 28px; }
+    main {padding: 16px;}
+    .btn {
+      width: 100%;
+      padding: 16px 0;
+      margin: 18px 0 10px 0;
+      background: linear-gradient(90deg,#2563eb 60%,#38bdf8);
+      color: #fff;
+      font-weight: bold;
+      font-size: 19px;
+      border: none;
+      border-radius: 16px;
+      box-shadow: 0 2px 7px rgba(37,99,235,0.10);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      transition: background .17s, transform .13s;
+      outline: none;
+      touch-action: manipulation;
+      user-select: none;
+      letter-spacing: .01em;
+    }
+    .btn:active { background: #2563eb; transform: scale(0.97);}
+    .dash-grid {display: flex; flex-direction: column; gap:12px;}
+    .dash-card {
+      border-radius: 15px;
+      display: flex;
+      align-items: center;
+      padding: 15px 12px;
+      box-shadow: 0 1px 7px rgba(0,0,0,0.08);
+      font-weight: 600;
+      font-size: 18px;
+      background: #fff;
+      gap: 13px;
+      min-height: 48px;
+      cursor: pointer;
+      user-select: none;
+      border: none;
+      outline: none;
+      transition: box-shadow .14s;
+    }
+    .dash-card:active { box-shadow:0 0 0 2px #2563eb;}
+    .dash-card .material-icons { font-size:27px; }
+    .dash-card.green { border-left:5px solid #4ade80; }
+    .dash-card.yellow { border-left:5px solid #fde047; }
+    .dash-card.red    { border-left:5px solid #f87171; }
+    .count { font-size: 1.5em; font-weight:900; margin-left:auto; margin-right:5px;}
+    .insights {display:grid;gap:10px;margin:20px 0 9px 0;}
+    .insight-block {
+      background:linear-gradient(90deg,#a5f3fc 80%,#fff);
+      border-radius:15px;
+      box-shadow:0 1px 8px rgba(0,0,0,0.09);
+      padding:12px 13px 10px 13px;
+      display:flex;
+      flex-direction:column;
+      align-items:flex-start;
+      font-size:16px;
+    }
+    .insight-label {font-weight:600;color:#0369a1;}
+    .insight-row {display:flex;gap:18px;margin-top:3px;}
+    .insight-count {font-size: 1.12em;font-weight: 700;color: #0e7490;}
+    .insight-list-btn {
+      color: #2563eb;
+      margin-left: 7px;
+      font-size: 15px;
+      text-decoration: underline;
+      cursor: pointer;
+      background: none;
+      border: none;
+      padding: 0;
+    }
+    .modal-bg {
+      position:fixed;top:0;left:0;right:0;bottom:0;
+      background:rgba(0,0,0,0.34);
+      display:none;
+      align-items:center;justify-content:center;
+      z-index:99999;
+    }
+    .modal-bg.show {display:flex;}
+    .modal-content {
+      background:#fff;
+      border-radius:15px;
+      box-shadow:0 4px 18px rgba(37,99,235,0.11);
+      width:97vw;max-width:395px;
+      padding:19px 13px 12px 13px;
+      position:relative;
+      max-height:88vh;overflow-y:auto;
+      font-size:16px;
+    }
+    .modal-content button.close {
+      position:absolute;top:10px;right:10px;
+      background:none;border:none;font-size:25px;color:#374151;
+      z-index:2;
+    }
+    .mob-list {margin:0; padding:0;}
+    .mob-card {
+      background:#fff;
+      border-radius:15px;
+      box-shadow:0 1px 8px rgba(0,0,0,0.08);
+      margin-bottom:14px;
+      padding:15px 13px 10px 14px;
+      font-size:16px;
+      display:flex; flex-direction:column;
+      gap:5px;
+    }
+    .mob-card .btn-row {display:flex;gap:10px;margin-top:10px;}
+    .mob-card-btn {
+      background:#2563eb;
+      color:#fff;
+      border:none;
+      border-radius:7px;
+      padding:8px 0;
+      font-size:16px;
+      font-weight:600;
+      flex:1;
+      transition:background .14s;
+    }
+    .mob-card-btn:active {background:#1e40af;}
+    .mob-card-btn.go {background:#22c55e;}
+    .mob-card-btn.go:active {background:#15803d;}
+    .form-section {
+      background: #fff;
+      border-radius: 15px;
+      box-shadow: 0 1px 11px rgba(0,0,0,0.11);
+      margin: 21px 0;
+      padding: 17px 14px 8px 14px;
+      font-size:17px;
+    }
+    .form-section label {font-weight:500;display:block;margin: 5px 0 2px 2px;}
+    .form-section input, .form-section select, .form-section textarea {
+      width: 100%;
+      font-size: 16px;
+      border: 1.3px solid #d1d5db;
+      border-radius: 9px;
+      padding: 10px 9px;
+      margin-bottom: 7px;
+      background: #f9fafb;
+      color: #333;
+      box-sizing: border-box;
+    }
+    .form-section textarea {resize:vertical;}
+    .form-section .row {display:flex;gap:9px;}
+    .form-section .row > div {flex:1;}
+    .form-section .form-actions {
+      display:flex;justify-content:flex-end;gap:12px;padding:14px 0 7px 0;
+    }
+    .form-section .form-btn {
+      padding:10px 23px;
+      background:#2563eb;
+      border:none;
+      border-radius:8px;
+      color:#fff;
+      font-weight:700;
+      font-size:18px;
+      letter-spacing:0.01em;
+    }
+    .form-section .form-btn.cancel {
+      background: #e5e7eb;
+      color: #374151;
+      font-weight: 600;
+    }
+    .autocomplete-items {
+      position:absolute;z-index:1000;background:#fff;
+      border:1.2px solid #d1d5db;width:100%;max-height:180px;overflow-y:auto;
+      border-radius:9px;
+      left:0;top:100%;
+      margin-top:2px;
+    }
+    .autocomplete-item {
+      padding:13px 15px;
+      font-size:1em;
+      cursor:pointer;
+    }
+    .autocomplete-item:active, .autocomplete-active {background:#e0e7ef;}
+    .hidden {display:none !important;}
+    @media (max-width: 340px) {
+      body, main {font-size:15px;}
+      .btn, .dash-card {font-size:16px;}
+      .form-section {font-size:15px;}
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <i class="material-icons">tv</i>
+    CableTV Complaint System
+  </header>
+  <main>
+    <!-- Register Complaint Button -->
+    <div id="registerComplaintDiv">
+      <button id="registerComplaintBtn" class="btn"><i class="material-icons">add_circle_outline</i>Register Complaint</button>
+    </div>
+    <!-- Dashboard -->
+    <section id="homeSection">
+      <div class="dash-grid">
+        <button id="pendingComplaintsBtn" class="dash-card green">
+          <i class="material-icons">pending_actions</i>
+          <span>Pending</span>
+          <span id="pendingComplaintsCount" class="count">0</span>
+        </button>
+        <button id="pendingComplaints2hBtn" class="dash-card yellow">
+          <i class="material-icons">schedule</i>
+          <span>Pending 2+ hrs</span>
+          <span id="pendingComplaints2hCount" class="count">0</span>
+        </button>
+        <button id="pendingComplaints24hBtn" class="dash-card red">
+          <i class="material-icons">schedule</i>
+          <span>Pending 24+ hrs</span>
+          <span id="pendingComplaints24hCount" class="count">0</span>
+        </button>
+      </div>
+    </section>
+    <!-- Pending Complaints List -->
+    <section id="pendingListSection" class="hidden">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <button id="backToHomeBtn" style="background:none;border:none;color:#2563eb;font-size:20px;"><i class="material-icons">arrow_back</i></button>
+        <h2 id="pendingListHeader" style="font-size:18px;margin:0;font-weight:bold;color:#ea580c;">Pending Complaints</h2>
+      </div>
+      <div id="pendingComplaintsCardList" class="mob-list"></div>
+    </section>
+    <!-- Resolve Complaint Form (hidden, for demo UI only) -->
+    <section id="resolveComplaintForm" class="form-section hidden">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <h2 style="font-size:17px;margin:0;font-weight:bold;">Resolve Complaint</h2>
+        <button id="closeResolveFormBtn" style="background:none;border:none;color:#374151;font-size:23px;"><i class="material-icons">close</i></button>
+      </div>
+      <form id="resolveComplaintFormElement" autocomplete="off">
+        <label>Customer Name</label>
+        <input id="resolveCustomerName" type="text" readonly>
+        <label>Complaint Type</label>
+        <input id="resolveComplaintType" type="text" readonly>
+        <label>Comments</label>
+        <textarea id="resolveComplaintComments" readonly></textarea>
+        <label>STB Number</label>
+        <input id="resolveStbNumber" type="text" readonly>
+        <label>Address</label>
+        <textarea id="resolveAddress" readonly></textarea>
+        <div class="row">
+          <div>
+            <label>Phone 1</label>
+            <input id="resolvePhone1" type="text" readonly>
+          </div>
+          <div>
+            <label>Phone 2</label>
+            <input id="resolvePhone2" type="text" readonly>
+          </div>
+          <div>
+            <label>Phone 3</label>
+            <input id="resolvePhone3" type="text" readonly>
+          </div>
+        </div>
+        <label>Resolution Comments (Optional)</label>
+        <textarea id="resolutionComments" rows="2" placeholder="Add any resolution details..."></textarea>
+        <div class="form-actions">
+          <button type="button" id="cancelResolveComplaintBtn" class="form-btn cancel">Cancel</button>
+          <button type="submit" class="form-btn">Resolve</button>
+        </div>
+      </form>
+    </section>
+  </main>
+  <script>
+    // Config
+    const SHEETDB_API = "https://sheetdb.io/api/v1/ner9gfv7uhpnb";
+    const SHEETDB_CUSTOMERS_API = "https://sheetdb.io/api/v1/f5vg3sptzr3d4";
+    let complaintData = [];
+    // Show/hide helpers
+    function showSection(id) {
+      document.getElementById('registerComplaintDiv').classList.add('hidden');
+      document.getElementById('homeSection').classList.add('hidden');
+      document.getElementById('pendingListSection').classList.add('hidden');
+      document.getElementById('resolveComplaintForm').classList.add('hidden');
+      document.getElementById(id).classList.remove('hidden');
+    }
+    // Load all complaints
+    async function loadComplaints() {
+      const res = await fetch(SHEETDB_API);
+      complaintData = await res.json();
+      updateDashboard();
+    }
+    function updateDashboard() {
+      let pending = complaintData.filter(c => !c.resolved_at);
+      document.getElementById('pendingComplaintsCount').textContent = pending.length;
+      let now = Date.now(), count2h = 0, count24h = 0;
+      pending.forEach(c => {
+        let created = Date.parse(c.timestamp || c.created_at);
+        if (!isNaN(created)) {
+          let diff = (now - created) / (1000 * 60 * 60);
+          if (diff > 2 && diff <= 24) count2h++;
+          if (diff > 24) count24h++;
+        }
+      });
+      document.getElementById('pendingComplaints2hCount').textContent = count2h;
+      document.getElementById('pendingComplaints24hCount').textContent = count24h;
+    }
+    // Resolve Complaint
+    async function resolveComplaint(complaintId) {
+      let complaint = complaintData.find(c => c.id === complaintId);
+      if (!complaint) return; // If complaint doesn't exist, exit
+      const payload = {
+        data: {
+          resolved_at: new Date().toISOString()
+        }
+      };
+      await fetch(`${SHEETDB_API}/${complaintId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      loadComplaints();
+      alert("Complaint resolved!");
+    }
+    // Show pending complaints (card list)
+    function renderPendingComplaintsList(filter="all") {
+      showSection('pendingListSection');
+      let now = Date.now();
+      let list = complaintData.filter(c => !c.resolved_at).sort((a, b) => (a.timestamp || a.created_at || "") > (b.timestamp || b.created_at || "") ? 1 : -1);
+      if (filter === "2h") {
+        list = list.filter(c => {
+          let created = Date.parse(c.timestamp || c.created_at);
+          if (!isNaN(created)) {
+            let diff = (now - created) / (1000 * 60 * 60);
+            return diff > 2 && diff <= 24;
+          }
+          return false;
+        });
+      } else if (filter === "24h") {
+        list = list.filter(c => {
+          let created = Date.parse(c.timestamp || c.created_at);
+          if (!isNaN(created)) {
+            let diff = (now - created) / (1000 * 60 * 60);
+            return diff > 24;
+          }
+          return false;
+        });
+      }
+      const cardList = document.getElementById('pendingComplaintsCardList');
+      if (!list.length) {
+        cardList.innerHTML = `<div class="text-center py-6" style="color:#64748b;">No pending complaints.</div>`;
+        return;
+      }
+      cardList.innerHTML = list.map((c) => `
+        <div class="mob-card">
+          <div><b>${c.customer || ""}</b> <span style="font-size:13px;color:#6d7280;">${new Date(c.timestamp || c.created_at).toLocaleString()}</span></div>
+          <div><span style="font-size:15px;color:#1e293b;">${c.type || ""}</span></div>
+          ${c.comments ? `<div style="font-size:13px;color:#64748b;margin-bottom:2px;">${c.comments}</div>` : ""}
+          <button class="mob-card-btn go" onclick="resolveComplaint('${c.id}')">Resolve</button>
+        </div>
+      `).join('');
+    }
+    document.getElementById('registerComplaintBtn').onclick = function() { showSection('complaintForm'); };
+    document.getElementById('backToHomeBtn').onclick = function() { showSection('registerComplaintDiv'); showSection('homeSection'); };
+    document.getElementById('pendingComplaintsBtn').onclick = function() { renderPendingComplaintsList("all"); };
+    document.getElementById('pendingComplaints2hBtn').onclick = function() { renderPendingComplaintsList("2h"); };
+    document.getElementById('pendingComplaints24hBtn').onclick = function() { renderPendingComplaintsList("24h"); };
+    fetchCustomerList();
+    loadComplaints();
+  </script>
+</body>
+</html>
+
